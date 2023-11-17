@@ -1,0 +1,109 @@
+-- Tabla de Hechos (Transacciones)
+CREATE TABLE Transacciones (
+    FactID INT AUTO_INCREMENT PRIMARY KEY,
+    FechaID INT,
+    UsuarioID INT,
+    TipoTransaccionID INT,
+    Monto DECIMAL(10, 2),
+    FOREIGN KEY (FechaID) REFERENCES DimensionFecha(FechaID),
+    FOREIGN KEY (UsuarioID) REFERENCES DimensionUsuario(UsuarioID),
+    FOREIGN KEY (TipoTransaccionID) REFERENCES DimensionTipoTransaccion(TipoTransaccionID)
+);
+
+-- Tabla de Dimensión de Usuario
+CREATE TABLE DimensionUsuario (
+    UsuarioID INT PRIMARY KEY,
+    Nombre VARCHAR(50),
+    Apellido VARCHAR(50),
+    -- Otros campos relevantes del usuario
+);
+
+-- Tabla de Dimensión de Tipo de Transacción
+CREATE TABLE DimensionTipoTransaccion (
+    TipoTransaccionID INT PRIMARY KEY,
+    TipoTransaccion VARCHAR(50),
+    Descripcion VARCHAR(255),
+    -- Otros detalles sobre el tipo de transacción
+);
+
+-- Tabla de Dimensión de Fecha
+CREATE TABLE DimensionFecha (
+    FechaID INT PRIMARY KEY,
+    Fecha DATE,
+    DiaSemana VARCHAR(20),
+    Mes VARCHAR(20),
+    Anio INT,
+    -- Otros detalles temporales
+);
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filtrar Transacciones</title>
+</head>
+<body>
+    <form action="procesar_transacciones.php" method="post">
+        <label for="tipo_transaccion">Selecciona el tipo de transacción:</label>
+        <select name="tipo_transaccion" id="tipo_transaccion">
+            <option value="Todas">Todas</option>
+            <option value="Depósito">Depósito</option>
+            <option value="Retiro">Retiro</option>
+        </select>
+        <input type="submit" value="Filtrar">
+    </form>
+</body>
+</html>
+
+
+
+
+
+
+<?php
+// Conexión a la base de datos
+$servername = "tu_host";
+$username = "tu_usuario";
+$password = "tu_contraseña";
+$database = "tu_basededatos";
+
+$conn = new mysqli($servername, $username, $password, $database);
+
+// Verificar la conexión
+if ($conn->connect_error) {
+    die("Error en la conexión: " . $conn->connect_error);
+}
+
+// Obtener el tipo de transacción seleccionado del formulario
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $tipo_transaccion = $_POST["tipo_transaccion"];
+
+    // Consulta SQL para obtener transacciones según el tipo seleccionado en el combo box
+    if ($tipo_transaccion !== "Todas") {
+        $sql = "SELECT * FROM Transacciones WHERE TipoTransaccion = '$tipo_transaccion'";
+    } else {
+        $sql = "SELECT * FROM Transacciones";
+    }
+
+    // Ejecutar la consulta SQL
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        // Mostrar los resultados (aquí se puede personalizar la salida según tus necesidades)
+        while($row = $result->fetch_assoc()) {
+            echo "ID: " . $row["FactID"]. " - Tipo: " . $row["TipoTransaccion"]. " - Monto: " . $row["Monto"]. "<br>";
+        }
+    } else {
+        echo "No se encontraron resultados.";
+    }
+} else {
+    echo "Solicitud no válida.";
+}
+
+// Cerrar la conexión
+$conn->close();
+?>
+
